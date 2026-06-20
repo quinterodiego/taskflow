@@ -132,6 +132,27 @@ export async function reorderTasks(orderedIds: string[]): Promise<void> {
   })
 }
 
+export async function updateTaskTitle(id: string, title: string): Promise<void> {
+  const sheets = getSheets()
+  const spreadsheetId = process.env.SPREADSHEET_ID!
+
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: RANGE,
+  })
+
+  const rows = res.data.values || []
+  const rowIndex = rows.findIndex((r) => r[0] === id)
+  if (rowIndex === -1) throw new Error("Task not found")
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: `${SHEET_NAME}!B${rowIndex + 1}`,
+    valueInputOption: "USER_ENTERED",
+    requestBody: { values: [[title]] },
+  })
+}
+
 export async function deleteTask(id: string): Promise<void> {
   const sheets = getSheets()
   const spreadsheetId = process.env.SPREADSHEET_ID!

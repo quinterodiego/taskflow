@@ -1,8 +1,6 @@
 "use client"
 
-import { TaskStatus } from "@/types"
-
-type Filter = "todas" | TaskStatus
+import { Filter } from "@/types"
 
 interface Props {
   active: Filter

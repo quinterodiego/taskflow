@@ -1,12 +1,10 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
-import { Task, TaskStatus } from "@/types"
+import { useEffect, useState, useCallback, useRef } from "react"
+import { Task, TaskStatus, Filter } from "@/types"
 import TaskInput from "@/components/TaskInput"
 import TaskList from "@/components/TaskList"
 import FilterBar from "@/components/FilterBar"
-
-type Filter = "todas" | TaskStatus
 
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([])
@@ -14,6 +12,9 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+  const [undoTask, setUndoTask] = useState<Task | null>(null)
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const fetchTasks = useCallback(async () => {
     try {
@@ -22,7 +23,7 @@ export default function Home() {
       const data = await res.json()
       setTasks(data)
       setError(null)
-    } catch (e) {
+    } catch {
       setError("No se pudieron cargar las tareas. Revisá la configuración.")
     } finally {
       setLoading(false)
@@ -32,6 +33,26 @@ export default function Home() {
   useEffect(() => {
     fetchTasks()
   }, [fetchTasks])
+
+  // Auto-dismiss error after 5s
+  useEffect(() => {
+    if (!error) return
+    const t = setTimeout(() => setError(null), 5000)
+    return () => clearTimeout(t)
+  }, [error])
+
+  // Auto-dismiss toast after 2s
+  useEffect(() => {
+    if (!toast) return
+    const t = setTimeout(() => setToast(null), 2000)
+    return () => clearTimeout(t)
+  }, [toast])
+
+  // Pending count in tab title
+  useEffect(() => {
+    const count = tasks.filter((t) => t.status === "pendiente").length
+    document.title = count > 0 ? `(${count}) TaskFlow` : "TaskFlow"
+  }, [tasks])
 
   const handleAdd = async (title: string) => {
     try {
@@ -43,6 +64,7 @@ export default function Home() {
       if (!res.ok) throw new Error()
       const task = await res.json()
       setTasks((prev) => [...prev, task])
+      setToast("Tarea agregada")
     } catch {
       setError("No se pudo agregar la tarea.")
     }
@@ -50,10 +72,7 @@ export default function Home() {
 
   const handleStatusChange = async (id: string, status: TaskStatus) => {
     setUpdatingId(id)
-    // Optimistic update
-    setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, status } : t))
-    )
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)))
     try {
       const res = await fetch(`/api/tasks/${encodeURIComponent(id)}`, {
         method: "PATCH",
@@ -62,7 +81,6 @@ export default function Home() {
       })
       if (!res.ok) throw new Error()
     } catch {
-      // Rollback
       fetchTasks()
       setError("No se pudo actualizar el estado.")
     } finally {
@@ -70,20 +88,51 @@ export default function Home() {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    setUpdatingId(id)
-    // Optimistic
-    setTasks((prev) => prev.filter((t) => t.id !== id))
+  const handleTitleChange = async (id: string, title: string) => {
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, title } : t)))
     try {
       const res = await fetch(`/api/tasks/${encodeURIComponent(id)}`, {
-        method: "DELETE",
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }),
       })
       if (!res.ok) throw new Error()
     } catch {
       fetchTasks()
-      setError("No se pudo eliminar la tarea.")
-    } finally {
-      setUpdatingId(null)
+      setError("No se pudo actualizar el título.")
+    }
+  }
+
+  const handleDelete = (id: string) => {
+    const task = tasks.find((t) => t.id === id)
+    if (!task) return
+
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current)
+
+    setTasks((prev) => prev.filter((t) => t.id !== id))
+    setUndoTask(task)
+
+    undoTimerRef.current = setTimeout(async () => {
+      setUndoTask(null)
+      try {
+        const res = await fetch(`/api/tasks/${encodeURIComponent(id)}`, {
+          method: "DELETE",
+        })
+        if (!res.ok) throw new Error()
+      } catch {
+        fetchTasks()
+        setError("No se pudo eliminar la tarea.")
+      }
+    }, 4000)
+  }
+
+  const handleUndoDelete = () => {
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current)
+    if (undoTask) {
+      setTasks((prev) =>
+        [...prev, undoTask].sort((a, b) => a.priority - b.priority)
+      )
+      setUndoTask(null)
     }
   }
 
@@ -124,6 +173,13 @@ export default function Home() {
           </p>
         </div>
 
+        {/* Toast de éxito */}
+        {toast && (
+          <div className="mb-4 px-4 py-2.5 rounded-lg bg-accent/10 border border-accent/20 text-accent text-xs font-mono animate-fade-in">
+            {toast}
+          </div>
+        )}
+
         {/* Error banner */}
         {error && (
           <div className="mb-4 px-4 py-2.5 rounded-lg bg-status-suspended/10 border border-status-suspended/20 text-status-suspended text-xs font-mono flex items-center justify-between animate-fade-in">
@@ -133,6 +189,19 @@ export default function Home() {
               className="ml-4 opacity-60 hover:opacity-100"
             >
               ×
+            </button>
+          </div>
+        )}
+
+        {/* Undo banner */}
+        {undoTask && (
+          <div className="mb-4 px-4 py-2.5 rounded-lg bg-surface-2 border border-surface-4 text-ink-muted text-xs font-mono flex items-center justify-between animate-fade-in">
+            <span>Tarea eliminada</span>
+            <button
+              onClick={handleUndoDelete}
+              className="ml-4 text-accent hover:opacity-80 font-medium"
+            >
+              Deshacer
             </button>
           </div>
         )}
@@ -156,9 +225,11 @@ export default function Home() {
         ) : (
           <TaskList
             tasks={filtered}
+            filter={filter}
             onReorder={handleReorder}
             onStatusChange={handleStatusChange}
             onDelete={handleDelete}
+            onTitleChange={handleTitleChange}
             updatingId={updatingId}
           />
         )}

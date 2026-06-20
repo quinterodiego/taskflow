@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { updateTaskStatus, deleteTask } from "@/lib/sheets"
+import { updateTaskStatus, updateTaskTitle, deleteTask } from "@/lib/sheets"
 import { TaskStatus } from "@/types"
 
 export async function PATCH(
@@ -7,8 +7,13 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { status } = await req.json()
-    await updateTaskStatus(decodeURIComponent(params.id), status as TaskStatus)
+    const body = await req.json()
+    if (body.status !== undefined) {
+      await updateTaskStatus(decodeURIComponent(params.id), body.status as TaskStatus)
+    }
+    if (body.title !== undefined) {
+      await updateTaskTitle(decodeURIComponent(params.id), body.title as string)
+    }
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error("PATCH /api/tasks/[id] error:", error)

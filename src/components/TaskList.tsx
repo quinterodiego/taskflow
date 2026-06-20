@@ -15,23 +15,33 @@ import {
   verticalListSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable"
-import { Task, TaskStatus } from "@/types"
+import { Task, TaskStatus, Filter } from "@/types"
 import TaskItem from "./TaskItem"
-import { useState } from "react"
+
+const EMPTY_MESSAGES: Record<Filter, string> = {
+  todas: "sin tareas aún",
+  pendiente: "no hay tareas pendientes",
+  finalizado: "no hay tareas finalizadas",
+  suspendido: "no hay tareas suspendidas",
+}
 
 interface Props {
   tasks: Task[]
+  filter: Filter
   onReorder: (tasks: Task[]) => void
   onStatusChange: (id: string, status: TaskStatus) => void
   onDelete: (id: string) => void
+  onTitleChange: (id: string, title: string) => void
   updatingId: string | null
 }
 
 export default function TaskList({
   tasks,
+  filter,
   onReorder,
   onStatusChange,
   onDelete,
+  onTitleChange,
   updatingId,
 }: Props) {
   const sensors = useSensors(
@@ -57,7 +67,12 @@ export default function TaskList({
     return (
       <div className="flex flex-col items-center justify-center py-20 text-ink-faint">
         <span className="text-4xl mb-4 opacity-30">○</span>
-        <p className="text-sm font-mono">sin tareas</p>
+        <p className="text-sm font-mono">{EMPTY_MESSAGES[filter]}</p>
+        {filter === "todas" && (
+          <p className="text-xs font-mono mt-2 opacity-50">
+            escribí algo arriba para empezar
+          </p>
+        )}
       </div>
     )
   }
@@ -79,6 +94,7 @@ export default function TaskList({
               task={task}
               onStatusChange={onStatusChange}
               onDelete={onDelete}
+              onTitleChange={onTitleChange}
               updating={updatingId === task.id}
             />
           ))}

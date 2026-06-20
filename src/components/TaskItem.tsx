@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useRef, useEffect } from "react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { Task, TaskStatus } from "@/types"
@@ -9,6 +10,7 @@ interface Props {
   task: Task
   onStatusChange: (id: string, status: TaskStatus) => void
   onDelete: (id: string) => void
+  onTitleChange: (id: string, title: string) => void
   updating: boolean
 }
 
@@ -16,6 +18,7 @@ export default function TaskItem({
   task,
   onStatusChange,
   onDelete,
+  onTitleChange,
   updating,
 }: Props) {
   const {
@@ -27,18 +30,61 @@ export default function TaskItem({
     isDragging,
   } = useSortable({ id: task.id })
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+  const [editing, setEditing] = useState(false)
+  const [editValue, setEditValue] = useState(task.title)
+  const editInputRef = useRef<HTMLInputElement>(null)
+
+  const [swipeX, setSwipeX] = useState(0)
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null)
+
+  useEffect(() => {
+    if (editing) editInputRef.current?.focus()
+  }, [editing])
+
+  const isStruck = task.status === "finalizado" || task.status === "suspendido"
+
+  const handleTitleSave = () => {
+    const trimmed = editValue.trim()
+    if (trimmed && trimmed !== task.title) {
+      onTitleChange(task.id, trimmed)
+    } else {
+      setEditValue(task.title)
+    }
+    setEditing(false)
   }
 
-  const isStruck =
-    task.status === "finalizado" || task.status === "suspendido"
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartRef.current) return
+    const deltaX = e.touches[0].clientX - touchStartRef.current.x
+    const deltaY = e.touches[0].clientY - touchStartRef.current.y
+    if (Math.abs(deltaX) < Math.abs(deltaY)) return
+    if (deltaX < 0) setSwipeX(Math.max(deltaX, -120))
+  }
+
+  const handleTouchEnd = () => {
+    if (swipeX < -80) {
+      onDelete(task.id)
+    } else {
+      setSwipeX(0)
+    }
+    touchStartRef.current = null
+  }
+
+  const finalStyle = swipeX !== 0
+    ? { transform: `translateX(${swipeX}px)`, transition: "none" }
+    : { transform: CSS.Transform.toString(transform), transition }
 
   return (
     <div
       ref={setNodeRef}
-      style={style}
+      style={finalStyle}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       className={`
         group flex items-center gap-3 px-4 py-3 rounded-lg border transition-all
         ${isDragging
@@ -65,35 +111,58 @@ export default function TaskItem({
         </svg>
       </button>
 
-      {/* Title */}
-      <span
-        className={`
-          flex-1 text-sm transition-colors min-w-0 truncate
-          ${isStruck ? "line-through text-ink-faint" : "text-ink"}
-        `}
-      >
-        {task.title}
-      </span>
+      {/* Title — editing or display */}
+      {editing ? (
+        <input
+          ref={editInputRef}
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onBlur={handleTitleSave}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleTitleSave()
+            if (e.key === "Escape") {
+              setEditValue(task.title)
+              setEditing(false)
+            }
+          }}
+          className="flex-1 bg-transparent text-ink text-sm outline-none border-b border-accent/50 min-w-0 font-sans pb-px"
+        />
+      ) : (
+        <span
+          onDoubleClick={() => !updating && setEditing(true)}
+          title="Doble click para editar"
+          className={`
+            flex-1 text-sm transition-all duration-300 min-w-0 truncate cursor-default select-none
+            ${isStruck ? "line-through text-ink-faint" : "text-ink"}
+          `}
+        >
+          {task.title}
+        </span>
+      )}
 
-      {/* Status badge */}
-      <StatusBadge
-        status={task.status}
-        onChange={(next) => onStatusChange(task.id, next)}
-        disabled={updating}
-      />
+      {/* Status badge — hidden while editing */}
+      {!editing && (
+        <StatusBadge
+          status={task.status}
+          onChange={(next) => onStatusChange(task.id, next)}
+          disabled={updating}
+        />
+      )}
 
-      {/* Delete button */}
-      <button
-        onClick={() => onDelete(task.id)}
-        disabled={updating}
-        className="opacity-100 sm:opacity-40 sm:group-hover:opacity-100 text-ink-faint hover:text-status-suspended transition-all disabled:opacity-20 flex-shrink-0"
-        title="Eliminar tarea"
-      >
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-          <line x1="2" y1="2" x2="12" y2="12" />
-          <line x1="12" y1="2" x2="2" y2="12" />
-        </svg>
-      </button>
+      {/* Delete button — hidden while editing */}
+      {!editing && (
+        <button
+          onClick={() => onDelete(task.id)}
+          disabled={updating}
+          className="opacity-100 sm:opacity-40 sm:group-hover:opacity-100 text-ink-faint hover:text-status-suspended transition-all disabled:opacity-20 flex-shrink-0"
+          title="Eliminar tarea"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+            <line x1="2" y1="2" x2="12" y2="12" />
+            <line x1="12" y1="2" x2="2" y2="12" />
+          </svg>
+        </button>
+      )}
     </div>
   )
 }
