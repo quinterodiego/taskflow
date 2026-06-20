@@ -6,6 +6,16 @@ import { CSS } from "@dnd-kit/utilities"
 import { Task, TaskStatus } from "@/types"
 import StatusBadge from "./StatusBadge"
 
+function formatRelativeDate(iso: string): string {
+  if (!iso) return ""
+  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000)
+  if (diff === 0) return "hoy"
+  if (diff === 1) return "ayer"
+  if (diff < 7) return `hace ${diff} días`
+  if (diff < 30) return `hace ${Math.floor(diff / 7)} sem.`
+  return new Date(iso).toLocaleDateString("es-AR", { day: "numeric", month: "short" })
+}
+
 interface Props {
   task: Task
   onStatusChange: (id: string, status: TaskStatus) => void
@@ -128,16 +138,23 @@ export default function TaskItem({
           className="flex-1 bg-transparent text-ink text-sm outline-none border-b border-accent/50 min-w-0 font-sans pb-px"
         />
       ) : (
-        <span
+        <div
           onDoubleClick={() => !updating && setEditing(true)}
           title="Doble click para editar"
-          className={`
-            flex-1 text-sm transition-all duration-300 min-w-0 truncate cursor-default select-none
-            ${isStruck ? "line-through text-ink-faint" : "text-ink"}
-          `}
+          className="flex-1 min-w-0 flex flex-col gap-0.5 cursor-default select-none"
         >
-          {task.title}
-        </span>
+          <span
+            className={`
+              text-sm transition-all duration-300 truncate
+              ${isStruck ? "line-through text-ink-faint" : "text-ink"}
+            `}
+          >
+            {task.title}
+          </span>
+          <span className="text-xs text-ink-faint font-mono">
+            {formatRelativeDate(task.createdAt)}
+          </span>
+        </div>
       )}
 
       {/* Status badge — hidden while editing */}
