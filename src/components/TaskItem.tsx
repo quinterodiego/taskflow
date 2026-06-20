@@ -16,7 +16,9 @@ function formatDueDate(iso: string): { text: string; color: string } {
 
   const DAYS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"]
 
-  if (diff < 0) return { text: `venció el ${DAYS[due.getDay()]}`, color: "text-status-suspended" }
+  if (diff === -1) return { text: "venció ayer", color: "text-status-suspended" }
+  if (diff >= -6) return { text: `venció el ${DAYS[due.getDay()]}`, color: "text-status-suspended" }
+  if (diff < -6) return { text: `venció el ${due.toLocaleDateString("es-AR", { day: "numeric", month: "short" })}`, color: "text-status-suspended" }
   if (diff === 0) return { text: "vence hoy", color: "text-accent" }
   if (diff <= 6) return { text: DAYS[due.getDay()], color: "text-status-done" }
   return {
