@@ -5,6 +5,7 @@ import { Task, TaskStatus, Filter } from "@/types"
 import TaskInput from "@/components/TaskInput"
 import TaskList from "@/components/TaskList"
 import FilterBar from "@/components/FilterBar"
+import ThemeToggle from "@/components/ThemeToggle"
 
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([])
@@ -163,14 +164,17 @@ export default function Home() {
     <main className="min-h-screen bg-surface-0 px-4 py-6 sm:py-12">
       <div className="max-w-xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-ink font-mono text-lg font-medium tracking-tight">
-            taskflow
-            <span className="text-accent">.</span>
-          </h1>
-          <p className="text-ink-faint text-xs font-mono mt-0.5">
-            {counts.pendiente} pendiente{counts.pendiente !== 1 ? "s" : ""}
-          </p>
+        <div className="mb-8 flex items-start justify-between">
+          <div>
+            <h1 className="text-ink font-mono text-lg font-medium tracking-tight">
+              taskflow
+              <span className="text-accent">.</span>
+            </h1>
+            <p className="text-ink-faint text-xs font-mono mt-0.5">
+              {counts.pendiente} pendiente{counts.pendiente !== 1 ? "s" : ""}
+            </p>
+          </div>
+          <ThemeToggle />
         </div>
 
         {/* Toast de éxito */}

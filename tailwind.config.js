@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
+  darkMode: "class",
   theme: {
     extend: {
       fontFamily: {
@@ -9,22 +10,22 @@ module.exports = {
       },
       colors: {
         surface: {
-          0: "#0d0d0d",
-          1: "#141414",
-          2: "#1c1c1c",
-          3: "#242424",
-          4: "#2e2e2e",
+          0: "rgb(var(--surface-0) / <alpha-value>)",
+          1: "rgb(var(--surface-1) / <alpha-value>)",
+          2: "rgb(var(--surface-2) / <alpha-value>)",
+          3: "rgb(var(--surface-3) / <alpha-value>)",
+          4: "rgb(var(--surface-4) / <alpha-value>)",
         },
         ink: {
-          DEFAULT: "#e8e8e8",
-          muted: "#888888",
-          faint: "#444444",
+          DEFAULT: "rgb(var(--ink) / <alpha-value>)",
+          muted: "rgb(var(--ink-muted) / <alpha-value>)",
+          faint: "rgb(var(--ink-faint) / <alpha-value>)",
         },
-        accent: "#e8ff4a",
+        accent: "rgb(var(--accent) / <alpha-value>)",
         status: {
-          pending: "#888888",
-          done: "#4ade80",
-          suspended: "#f87171",
+          pending: "rgb(var(--status-pending) / <alpha-value>)",
+          done: "rgb(var(--status-done) / <alpha-value>)",
+          suspended: "rgb(var(--status-suspended) / <alpha-value>)",
         },
       },
       animation: {
