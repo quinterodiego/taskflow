@@ -14,13 +14,13 @@ function formatDueDate(iso: string): { text: string; color: string } {
   due.setHours(0, 0, 0, 0)
   const diff = Math.round((due.getTime() - today.getTime()) / 86_400_000)
 
-  if (diff < -1) return { text: `venció hace ${Math.abs(diff)} días`, color: "text-status-suspended" }
-  if (diff === -1) return { text: "venció ayer", color: "text-status-suspended" }
+  const DAYS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"]
+
+  if (diff < 0) return { text: `venció el ${DAYS[due.getDay()]}`, color: "text-status-suspended" }
   if (diff === 0) return { text: "vence hoy", color: "text-accent" }
-  if (diff === 1) return { text: "vence mañana", color: "text-status-done" }
-  if (diff <= 3) return { text: `vence en ${diff} días`, color: "text-status-done" }
+  if (diff <= 6) return { text: DAYS[due.getDay()], color: "text-status-done" }
   return {
-    text: `vence ${due.toLocaleDateString("es-AR", { day: "numeric", month: "short" })}`,
+    text: due.toLocaleDateString("es-AR", { day: "numeric", month: "short" }),
     color: "text-status-done",
   }
 }
