@@ -8,7 +8,8 @@ import StatusBadge from "./StatusBadge"
 
 
 function formatDueDate(iso: string): { text: string; classes: string } {
-  const due = new Date(iso)
+  const [y, m, d] = iso.split("-").map(Number)
+  const due = new Date(y, m - 1, d) // local time, avoids UTC offset shifting the date
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   due.setHours(0, 0, 0, 0)
