@@ -8,7 +8,7 @@ const STATUS_CONFIG: Record<
 > = {
   pendiente: {
     label: "pendiente",
-    classes: "text-ink-muted border-surface-4 hover:border-ink-muted",
+    classes: "text-ink border-ink-faint/40 hover:border-ink-faint",
     next: "finalizado",
   },
   finalizado: {

@@ -86,7 +86,7 @@ export default function TaskItem({
       <button
         onClick={() => onDelete(task.id)}
         disabled={updating}
-        className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 text-ink-faint hover:text-status-suspended transition-all disabled:opacity-20 flex-shrink-0"
+        className="opacity-100 sm:opacity-40 sm:group-hover:opacity-100 text-ink-faint hover:text-status-suspended transition-all disabled:opacity-20 flex-shrink-0"
         title="Eliminar tarea"
       >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">

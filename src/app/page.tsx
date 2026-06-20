@@ -150,7 +150,7 @@ export default function Home() {
         {/* Task list */}
         {loading ? (
           <div className="flex items-center justify-center py-20 text-ink-faint">
-            <div className="w-4 h-4 border border-surface-4 border-t-ink-faint rounded-full animate-spin mr-3" />
+            <div className="w-4 h-4 border border-surface-4 border-t-accent rounded-full animate-spin mr-3" />
             <span className="text-sm font-mono">cargando…</span>
           </div>
         ) : (

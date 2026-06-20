@@ -28,7 +28,7 @@ export default function FilterBar({ active, counts, onChange }: Props) {
             text-xs font-mono px-3 py-1.5 rounded transition-all
             ${active === key
               ? "bg-surface-3 text-ink"
-              : "text-ink-faint hover:text-ink-muted"
+              : "text-ink-faint hover:text-ink-muted hover:bg-surface-2"
             }
           `}
         >
