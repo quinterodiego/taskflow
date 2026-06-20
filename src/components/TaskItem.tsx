@@ -214,14 +214,15 @@ export default function TaskItem({
             <button
               onClick={() => !updating && setEditingDue(true)}
               title="Agregar fecha de vencimiento"
-              className="text-ink-faint hover:text-ink-muted transition-colors opacity-0 group-hover:opacity-100"
+              className="flex items-center gap-1.5 text-ink-faint hover:text-ink-muted transition-colors opacity-0 group-hover:opacity-100 text-xs font-mono"
             >
-              <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="1" y="2.5" width="12" height="11" rx="1.5" />
                 <line x1="1" y1="5.5" x2="13" y2="5.5" />
                 <line x1="4" y1="1" x2="4" y2="4" />
                 <line x1="10" y1="1" x2="10" y2="4" />
               </svg>
+              vto
             </button>
           )}
         </div>
