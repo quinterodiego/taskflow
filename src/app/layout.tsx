@@ -5,8 +5,7 @@ import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration"
 const themeScript = `
 (function() {
   var t = localStorage.getItem('theme');
-  var dark = t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  if (dark) document.documentElement.classList.add('dark');
+  if (t !== 'light') document.documentElement.classList.add('dark');
 })();
 `
 
