@@ -17,11 +17,11 @@ function formatDueDate(iso: string): { text: string; color: string } {
   if (diff < -1) return { text: `venció hace ${Math.abs(diff)} días`, color: "text-status-suspended" }
   if (diff === -1) return { text: "venció ayer", color: "text-status-suspended" }
   if (diff === 0) return { text: "vence hoy", color: "text-accent" }
-  if (diff === 1) return { text: "vence mañana", color: "text-accent" }
-  if (diff <= 3) return { text: `vence en ${diff} días`, color: "text-ink-muted" }
+  if (diff === 1) return { text: "vence mañana", color: "text-status-done" }
+  if (diff <= 3) return { text: `vence en ${diff} días`, color: "text-status-done" }
   return {
     text: `vence ${due.toLocaleDateString("es-AR", { day: "numeric", month: "short" })}`,
-    color: "text-ink-faint",
+    color: "text-status-done",
   }
 }
 
