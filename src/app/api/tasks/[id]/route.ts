@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { updateTaskStatus, updateTaskTitle, deleteTask } from "@/lib/sheets"
+import { updateTaskStatus, updateTaskTitle, updateTaskDueDate, deleteTask } from "@/lib/sheets"
 import { TaskStatus } from "@/types"
 
 export async function PATCH(
@@ -13,6 +13,9 @@ export async function PATCH(
     }
     if (body.title !== undefined) {
       await updateTaskTitle(decodeURIComponent(params.id), body.title as string)
+    }
+    if (body.dueDate !== undefined) {
+      await updateTaskDueDate(decodeURIComponent(params.id), body.dueDate as string)
     }
     return NextResponse.json({ ok: true })
   } catch (error) {

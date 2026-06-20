@@ -32,6 +32,7 @@ interface Props {
   onStatusChange: (id: string, status: TaskStatus) => void
   onDelete: (id: string) => void
   onTitleChange: (id: string, title: string) => void
+  onDueDateChange: (id: string, dueDate: string) => void
   updatingId: string | null
 }
 
@@ -42,6 +43,7 @@ export default function TaskList({
   onStatusChange,
   onDelete,
   onTitleChange,
+  onDueDateChange,
   updatingId,
 }: Props) {
   const sensors = useSensors(
@@ -95,6 +97,7 @@ export default function TaskList({
               onStatusChange={onStatusChange}
               onDelete={onDelete}
               onTitleChange={onTitleChange}
+              onDueDateChange={onDueDateChange}
               updating={updatingId === task.id}
             />
           ))}

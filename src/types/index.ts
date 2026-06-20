@@ -8,4 +8,5 @@ export interface Task {
   status: TaskStatus
   priority: number // row order in sheet
   createdAt: string
+  dueDate?: string // ISO date string, optional
 }

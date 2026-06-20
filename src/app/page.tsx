@@ -55,12 +55,12 @@ export default function Home() {
     document.title = count > 0 ? `(${count}) TaskFlow` : "TaskFlow"
   }, [tasks])
 
-  const handleAdd = async (title: string) => {
+  const handleAdd = async (title: string, dueDate?: string) => {
     try {
       const res = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title }),
+        body: JSON.stringify({ title, dueDate }),
       })
       if (!res.ok) throw new Error()
       const task = await res.json()
@@ -86,6 +86,21 @@ export default function Home() {
       setError("No se pudo actualizar el estado.")
     } finally {
       setUpdatingId(null)
+    }
+  }
+
+  const handleDueDateChange = async (id: string, dueDate: string) => {
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, dueDate: dueDate || undefined } : t)))
+    try {
+      const res = await fetch(`/api/tasks/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dueDate }),
+      })
+      if (!res.ok) throw new Error()
+    } catch {
+      fetchTasks()
+      setError("No se pudo actualizar la fecha.")
     }
   }
 
@@ -234,6 +249,7 @@ export default function Home() {
             onStatusChange={handleStatusChange}
             onDelete={handleDelete}
             onTitleChange={handleTitleChange}
+            onDueDateChange={handleDueDateChange}
             updatingId={updatingId}
           />
         )}

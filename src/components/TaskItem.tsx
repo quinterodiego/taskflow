@@ -16,11 +16,30 @@ function formatRelativeDate(iso: string): string {
   return new Date(iso).toLocaleDateString("es-AR", { day: "numeric", month: "short" })
 }
 
+function formatDueDate(iso: string): { text: string; color: string } {
+  const due = new Date(iso)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  due.setHours(0, 0, 0, 0)
+  const diff = Math.round((due.getTime() - today.getTime()) / 86_400_000)
+
+  if (diff < -1) return { text: `venció hace ${Math.abs(diff)} días`, color: "text-status-suspended" }
+  if (diff === -1) return { text: "venció ayer", color: "text-status-suspended" }
+  if (diff === 0) return { text: "vence hoy", color: "text-accent" }
+  if (diff === 1) return { text: "vence mañana", color: "text-accent" }
+  if (diff <= 3) return { text: `vence en ${diff} días`, color: "text-ink-muted" }
+  return {
+    text: `vence ${due.toLocaleDateString("es-AR", { day: "numeric", month: "short" })}`,
+    color: "text-ink-faint",
+  }
+}
+
 interface Props {
   task: Task
   onStatusChange: (id: string, status: TaskStatus) => void
   onDelete: (id: string) => void
   onTitleChange: (id: string, title: string) => void
+  onDueDateChange: (id: string, dueDate: string) => void
   updating: boolean
 }
 
@@ -29,6 +48,7 @@ export default function TaskItem({
   onStatusChange,
   onDelete,
   onTitleChange,
+  onDueDateChange,
   updating,
 }: Props) {
   const {
@@ -44,12 +64,19 @@ export default function TaskItem({
   const [editValue, setEditValue] = useState(task.title)
   const editInputRef = useRef<HTMLInputElement>(null)
 
+  const [editingDue, setEditingDue] = useState(false)
+  const dueDateInputRef = useRef<HTMLInputElement>(null)
+
   const [swipeX, setSwipeX] = useState(0)
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
 
   useEffect(() => {
     if (editing) editInputRef.current?.focus()
   }, [editing])
+
+  useEffect(() => {
+    if (editingDue) dueDateInputRef.current?.showPicker?.()
+  }, [editingDue])
 
   const isStruck = task.status === "finalizado" || task.status === "suspendido"
 
@@ -61,6 +88,13 @@ export default function TaskItem({
       setEditValue(task.title)
     }
     setEditing(false)
+  }
+
+  const handleDueSave = (value: string) => {
+    setEditingDue(false)
+    if (value !== (task.dueDate ?? "")) {
+      onDueDateChange(task.id, value)
+    }
   }
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -87,6 +121,8 @@ export default function TaskItem({
   const finalStyle = swipeX !== 0
     ? { transform: `translateX(${swipeX}px)`, transition: "none" }
     : { transform: CSS.Transform.toString(transform), transition }
+
+  const due = task.dueDate ? formatDueDate(task.dueDate) : null
 
   return (
     <div
@@ -121,43 +157,78 @@ export default function TaskItem({
         </svg>
       </button>
 
-      {/* Title — editing or display */}
-      {editing ? (
-        <input
-          ref={editInputRef}
-          value={editValue}
-          onChange={(e) => setEditValue(e.target.value)}
-          onBlur={handleTitleSave}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleTitleSave()
-            if (e.key === "Escape") {
-              setEditValue(task.title)
-              setEditing(false)
-            }
-          }}
-          className="flex-1 bg-transparent text-ink text-sm outline-none border-b border-accent/50 min-w-0 font-sans pb-px"
-        />
-      ) : (
-        <div
-          onDoubleClick={() => !updating && setEditing(true)}
-          title="Doble click para editar"
-          className="flex-1 min-w-0 flex flex-col gap-0.5 cursor-default select-none"
-        >
+      {/* Title + meta */}
+      <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+        {editing ? (
+          <input
+            ref={editInputRef}
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onBlur={handleTitleSave}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleTitleSave()
+              if (e.key === "Escape") { setEditValue(task.title); setEditing(false) }
+            }}
+            className="bg-transparent text-ink text-sm outline-none border-b border-accent/50 min-w-0 font-sans pb-px"
+          />
+        ) : (
           <span
+            onDoubleClick={() => !updating && setEditing(true)}
+            title="Doble click para editar"
             className={`
-              text-sm transition-all duration-300 truncate
+              text-sm transition-all duration-300 truncate cursor-default select-none
               ${isStruck ? "line-through text-ink-faint" : "text-ink"}
             `}
           >
             {task.title}
           </span>
-          <span className="text-xs text-ink-faint font-mono">
-            {formatRelativeDate(task.createdAt)}
-          </span>
-        </div>
-      )}
+        )}
 
-      {/* Status badge — hidden while editing */}
+        {/* Due date / created date */}
+        <div className="flex items-center gap-1">
+          {editingDue ? (
+            <input
+              ref={dueDateInputRef}
+              type="date"
+              defaultValue={task.dueDate ?? ""}
+              onBlur={(e) => handleDueSave(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleDueSave((e.target as HTMLInputElement).value)
+                if (e.key === "Escape") setEditingDue(false)
+              }}
+              className="bg-transparent text-xs font-mono text-ink outline-none"
+            />
+          ) : due ? (
+            <button
+              onClick={() => !updating && setEditingDue(true)}
+              title="Click para cambiar fecha"
+              className={`text-xs font-mono transition-colors hover:opacity-80 ${due.color}`}
+            >
+              {due.text}
+            </button>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-ink-faint font-mono">
+                {formatRelativeDate(task.createdAt)}
+              </span>
+              <button
+                onClick={() => !updating && setEditingDue(true)}
+                title="Agregar fecha de vencimiento"
+                className="text-ink-faint hover:text-ink-muted transition-colors opacity-0 group-hover:opacity-100"
+              >
+                <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="1" y="2.5" width="12" height="11" rx="1.5" />
+                  <line x1="1" y1="5.5" x2="13" y2="5.5" />
+                  <line x1="4" y1="1" x2="4" y2="4" />
+                  <line x1="10" y1="1" x2="10" y2="4" />
+                </svg>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Status badge */}
       {!editing && (
         <StatusBadge
           status={task.status}
@@ -166,7 +237,7 @@ export default function TaskItem({
         />
       )}
 
-      {/* Delete button — hidden while editing */}
+      {/* Delete button */}
       {!editing && (
         <button
           onClick={() => onDelete(task.id)}

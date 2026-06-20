@@ -2,7 +2,7 @@ import { google } from "googleapis"
 import { Task, TaskStatus } from "@/types"
 
 const SHEET_NAME = "Tasks"
-const RANGE = `${SHEET_NAME}!A:E`
+const RANGE = `${SHEET_NAME}!A:F`
 
 function getAuth() {
   const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON!)
@@ -24,6 +24,7 @@ function rowToTask(row: string[], index: number): Task {
     status: (row[2] as TaskStatus) || "pendiente",
     priority: index,
     createdAt: row[4] || "",
+    dueDate: row[5] || undefined,
   }
 }
 
@@ -44,7 +45,7 @@ export async function getTasks(): Promise<Task[]> {
     .map((row, i) => rowToTask(row, i + 1))
 }
 
-export async function addTask(title: string): Promise<Task> {
+export async function addTask(title: string, dueDate?: string): Promise<Task> {
   const sheets = getSheets()
   const spreadsheetId = process.env.SPREADSHEET_ID!
 
@@ -52,24 +53,23 @@ export async function addTask(title: string): Promise<Task> {
   const createdAt = new Date().toISOString()
   const status: TaskStatus = "pendiente"
 
-  // Get current row count to set priority
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId,
     range: RANGE,
   })
   const rowCount = (res.data.values || []).length
-  const priority = rowCount // last position
+  const priority = rowCount
 
   await sheets.spreadsheets.values.append({
     spreadsheetId,
     range: RANGE,
     valueInputOption: "USER_ENTERED",
     requestBody: {
-      values: [[id, title, status, priority, createdAt]],
+      values: [[id, title, status, priority, createdAt, dueDate ?? ""]],
     },
   })
 
-  return { id, title, status, priority, createdAt }
+  return { id, title, status, priority, createdAt, dueDate }
 }
 
 export async function updateTaskStatus(
@@ -129,6 +129,27 @@ export async function reorderTasks(orderedIds: string[]): Promise<void> {
     range: RANGE,
     valueInputOption: "USER_ENTERED",
     requestBody: { values: newRows },
+  })
+}
+
+export async function updateTaskDueDate(id: string, dueDate: string): Promise<void> {
+  const sheets = getSheets()
+  const spreadsheetId = process.env.SPREADSHEET_ID!
+
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: RANGE,
+  })
+
+  const rows = res.data.values || []
+  const rowIndex = rows.findIndex((r) => r[0] === id)
+  if (rowIndex === -1) throw new Error("Task not found")
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: `${SHEET_NAME}!F${rowIndex + 1}`,
+    valueInputOption: "USER_ENTERED",
+    requestBody: { values: [[dueDate]] },
   })
 }
 
@@ -216,7 +237,7 @@ export async function initSheet(): Promise<void> {
       range: `${SHEET_NAME}!A1:E1`,
       valueInputOption: "USER_ENTERED",
       requestBody: {
-        values: [["id", "title", "status", "priority", "createdAt"]],
+        values: [["id", "title", "status", "priority", "createdAt", "dueDate"]],
       },
     })
     return
@@ -225,16 +246,16 @@ export async function initSheet(): Promise<void> {
   // Sheet exists — ensure header row is present
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId,
-    range: `${SHEET_NAME}!A1:E1`,
+    range: `${SHEET_NAME}!A1:F1`,
   })
   const rows = res.data.values || []
   if (rows.length === 0) {
     await sheets.spreadsheets.values.update({
       spreadsheetId,
-      range: `${SHEET_NAME}!A1:E1`,
+      range: `${SHEET_NAME}!A1:F1`,
       valueInputOption: "USER_ENTERED",
       requestBody: {
-        values: [["id", "title", "status", "priority", "createdAt"]],
+        values: [["id", "title", "status", "priority", "createdAt", "dueDate"]],
       },
     })
   }

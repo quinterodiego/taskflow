@@ -14,11 +14,11 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { title } = await req.json()
+    const { title, dueDate } = await req.json()
     if (!title?.trim()) {
       return NextResponse.json({ error: "Title required" }, { status: 400 })
     }
-    const task = await addTask(title.trim())
+    const task = await addTask(title.trim(), dueDate ?? undefined)
     return NextResponse.json(task)
   } catch (error) {
     console.error("POST /api/tasks error:", error)
