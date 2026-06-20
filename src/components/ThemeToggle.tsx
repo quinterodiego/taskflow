@@ -1,13 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 export default function ThemeToggle() {
-  const [dark, setDark] = useState<boolean | null>(null)
-
-  useEffect(() => {
-    setDark(document.documentElement.classList.contains("dark"))
-  }, [])
+  const [dark, setDark] = useState(() => {
+    if (typeof window === "undefined") return true
+    return document.documentElement.classList.contains("dark")
+  })
 
   const toggle = () => {
     const next = !dark
@@ -20,14 +19,11 @@ export default function ThemeToggle() {
     localStorage.setItem("theme", next ? "dark" : "light")
   }
 
-  // Don't render until we know the actual theme (avoids hydration flash)
-  if (dark === null) return <div className="w-6 h-6" />
-
   return (
     <button
       onClick={toggle}
       title={dark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-      className="text-ink-faint hover:text-ink transition-colors p-1"
+      className="text-ink-muted hover:text-ink transition-colors p-1"
     >
       {dark ? (
         // Sol — estás en dark, click va a light
