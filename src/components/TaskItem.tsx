@@ -7,24 +7,24 @@ import { Task, TaskStatus } from "@/types"
 import StatusBadge from "./StatusBadge"
 
 
-function formatDueDate(iso: string): { text: string; color: string } {
+function formatDueDate(iso: string): { text: string; classes: string } {
   const due = new Date(iso)
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   due.setHours(0, 0, 0, 0)
   const diff = Math.round((due.getTime() - today.getTime()) / 86_400_000)
-
   const DAYS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"]
 
-  if (diff === -1) return { text: "venció ayer", color: "text-status-suspended" }
-  if (diff >= -6) return { text: `venció el ${DAYS[due.getDay()]}`, color: "text-status-suspended" }
-  if (diff < -6) return { text: `venció el ${due.toLocaleDateString("es-AR", { day: "numeric", month: "short" })}`, color: "text-status-suspended" }
-  if (diff === 0) return { text: "vence hoy", color: "text-accent" }
-  if (diff <= 6) return { text: DAYS[due.getDay()], color: "text-status-done" }
-  return {
-    text: due.toLocaleDateString("es-AR", { day: "numeric", month: "short" }),
-    color: "text-status-done",
-  }
+  const overdue = "text-status-suspended border-status-suspended/30 hover:border-status-suspended"
+  const today_ = "text-accent border-accent/30 hover:border-accent"
+  const future = "text-status-done border-status-done/30 hover:border-status-done"
+
+  if (diff === -1) return { text: "venció ayer", classes: overdue }
+  if (diff >= -6) return { text: `venció el ${DAYS[due.getDay()]}`, classes: overdue }
+  if (diff < -6) return { text: `venció el ${due.toLocaleDateString("es-AR", { day: "numeric", month: "short" })}`, classes: overdue }
+  if (diff === 0) return { text: "vence hoy", classes: today_ }
+  if (diff <= 6) return { text: DAYS[due.getDay()], classes: future }
+  return { text: due.toLocaleDateString("es-AR", { day: "numeric", month: "short" }), classes: future }
 }
 
 interface Props {
@@ -188,44 +188,36 @@ export default function TaskItem({
           </span>
         )}
 
-        {/* Due date / created date */}
-        <div className="flex items-center gap-1">
-          {editingDue ? (
-            <input
-              ref={dueDateInputRef}
-              type="date"
-              defaultValue={task.dueDate ?? ""}
-              onBlur={(e) => handleDueSave(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleDueSave((e.target as HTMLInputElement).value)
-                if (e.key === "Escape") setEditingDue(false)
-              }}
-              className="bg-transparent text-xs font-mono text-ink outline-none"
-            />
-          ) : due ? (
-            <button
-              onClick={() => !updating && setEditingDue(true)}
-              title="Click para cambiar fecha"
-              className={`text-xs font-mono transition-colors hover:opacity-80 ${due.color}`}
-            >
-              {due.text}
-            </button>
-          ) : (
-            <button
-              onClick={() => !updating && setEditingDue(true)}
-              title="Agregar fecha de vencimiento"
-              className="flex items-center gap-1.5 text-ink-faint hover:text-ink-muted transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100 text-xs font-mono"
-            >
-              <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="1" y="2.5" width="12" height="11" rx="1.5" />
-                <line x1="1" y1="5.5" x2="13" y2="5.5" />
-                <line x1="4" y1="1" x2="4" y2="4" />
-                <line x1="10" y1="1" x2="10" y2="4" />
-              </svg>
-              vto
-            </button>
-          )}
-        </div>
+        {/* Due date chip */}
+        {editingDue ? (
+          <input
+            ref={dueDateInputRef}
+            type="date"
+            defaultValue={task.dueDate ?? ""}
+            onBlur={(e) => handleDueSave(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleDueSave((e.target as HTMLInputElement).value)
+              if (e.key === "Escape") setEditingDue(false)
+            }}
+            className="bg-transparent text-xs font-mono text-ink outline-none border-b border-accent/50 w-32"
+          />
+        ) : due ? (
+          <button
+            onClick={() => !updating && setEditingDue(true)}
+            title="Click para cambiar fecha"
+            className={`self-start text-xs font-mono px-2 py-0.5 rounded border transition-colors whitespace-nowrap ${due.classes}`}
+          >
+            {due.text}
+          </button>
+        ) : (
+          <button
+            onClick={() => !updating && setEditingDue(true)}
+            title="Agregar fecha de vencimiento"
+            className="self-start text-xs font-mono px-2 py-0.5 rounded border border-dashed border-surface-4 text-ink-faint hover:text-ink-muted hover:border-ink-faint transition-colors whitespace-nowrap"
+          >
+            + vto
+          </button>
+        )}
       </div>
 
       {/* Status badge */}
