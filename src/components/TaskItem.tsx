@@ -6,15 +6,6 @@ import { CSS } from "@dnd-kit/utilities"
 import { Task, TaskStatus } from "@/types"
 import StatusBadge from "./StatusBadge"
 
-function formatRelativeDate(iso: string): string {
-  if (!iso) return ""
-  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000)
-  if (diff === 0) return "hoy"
-  if (diff === 1) return "ayer"
-  if (diff < 7) return `hace ${diff} días`
-  if (diff < 30) return `hace ${Math.floor(diff / 7)} sem.`
-  return new Date(iso).toLocaleDateString("es-AR", { day: "numeric", month: "short" })
-}
 
 function formatDueDate(iso: string): { text: string; color: string } {
   const due = new Date(iso)
@@ -218,23 +209,18 @@ export default function TaskItem({
               {due.text}
             </button>
           ) : (
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs text-ink-faint font-mono">
-                {formatRelativeDate(task.createdAt)}
-              </span>
-              <button
-                onClick={() => !updating && setEditingDue(true)}
-                title="Agregar fecha de vencimiento"
-                className="text-ink-faint hover:text-ink-muted transition-colors opacity-0 group-hover:opacity-100"
-              >
-                <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="1" y="2.5" width="12" height="11" rx="1.5" />
-                  <line x1="1" y1="5.5" x2="13" y2="5.5" />
-                  <line x1="4" y1="1" x2="4" y2="4" />
-                  <line x1="10" y1="1" x2="10" y2="4" />
-                </svg>
-              </button>
-            </div>
+            <button
+              onClick={() => !updating && setEditingDue(true)}
+              title="Agregar fecha de vencimiento"
+              className="text-ink-faint hover:text-ink-muted transition-colors opacity-0 group-hover:opacity-100"
+            >
+              <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="1" y="2.5" width="12" height="11" rx="1.5" />
+                <line x1="1" y1="5.5" x2="13" y2="5.5" />
+                <line x1="4" y1="1" x2="4" y2="4" />
+                <line x1="10" y1="1" x2="10" y2="4" />
+              </svg>
+            </button>
           )}
         </div>
       </div>
