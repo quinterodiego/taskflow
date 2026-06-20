@@ -20,9 +20,11 @@ function formatDueDate(iso: string): { text: string; classes: string } {
   const today_ = "text-accent border-accent/30 hover:border-accent"
   const future = "text-status-done border-status-done/30 hover:border-status-done"
 
-  if (diff === -1) return { text: "venció ayer", classes: overdue }
-  if (diff >= -6) return { text: `venció el ${DAYS[due.getDay()]}`, classes: overdue }
-  if (diff < -6) return { text: `venció el ${due.toLocaleDateString("es-AR", { day: "numeric", month: "short" })}`, classes: overdue }
+  if (diff < 0) {
+    if (diff === -1) return { text: "venció ayer", classes: overdue }
+    if (diff >= -6) return { text: `venció el ${DAYS[due.getDay()]}`, classes: overdue }
+    return { text: `venció el ${due.toLocaleDateString("es-AR", { day: "numeric", month: "short" })}`, classes: overdue }
+  }
   if (diff === 0) return { text: "vence hoy", classes: today_ }
   if (diff <= 6) return { text: DAYS[due.getDay()], classes: future }
   return { text: due.toLocaleDateString("es-AR", { day: "numeric", month: "short" }), classes: future }
