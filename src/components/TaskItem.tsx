@@ -69,6 +69,7 @@ export default function TaskItem({
 
   const [swipeX, setSwipeX] = useState(0)
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (editing) editInputRef.current?.focus()
@@ -174,6 +175,16 @@ export default function TaskItem({
         ) : (
           <span
             onDoubleClick={() => !updating && setEditing(true)}
+            onTouchStart={() => {
+              if (updating) return
+              longPressTimer.current = setTimeout(() => setEditing(true), 500)
+            }}
+            onTouchMove={() => {
+              if (longPressTimer.current) clearTimeout(longPressTimer.current)
+            }}
+            onTouchEnd={() => {
+              if (longPressTimer.current) clearTimeout(longPressTimer.current)
+            }}
             title="Doble click para editar"
             className={`
               text-sm transition-all duration-300 truncate cursor-default select-none
