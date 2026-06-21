@@ -22,6 +22,7 @@ module.exports = {
           faint: "rgb(var(--ink-faint) / <alpha-value>)",
         },
         accent: "rgb(var(--accent) / <alpha-value>)",
+        brand: "rgb(var(--brand) / <alpha-value>)",
         status: {
           pending: "rgb(var(--status-pending) / <alpha-value>)",
           done: "rgb(var(--status-done) / <alpha-value>)",

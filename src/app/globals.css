@@ -18,7 +18,8 @@
   --ink: 26 26 24;
   --ink-muted: 107 107 101;
   --ink-faint: 168 168 160;
-  --accent: 160 140 0;
+  --accent: 168 168 160;
+  --brand: 232 255 74;
   --status-pending: 107 107 101;
   --status-done: 22 163 74;
   --status-suspended: 220 38 38;
@@ -35,6 +36,7 @@
   --ink-muted: 136 136 136;
   --ink-faint: 68 68 68;
   --accent: 232 255 74;
+  --brand: 232 255 74;
   --status-pending: 136 136 136;
   --status-done: 74 222 128;
   --status-suspended: 248 113 113;

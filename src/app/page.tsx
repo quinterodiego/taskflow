@@ -181,11 +181,10 @@ export default function Home() {
         {/* Header */}
         <div className="mb-8 flex items-start justify-between">
           <div>
-            <h1 className="text-ink font-mono text-lg font-medium tracking-tight">
-              taskflow
-              <span className="text-accent">.</span>
+            <h1 className="text-white dark:text-ink font-mono text-lg font-medium tracking-tight bg-black dark:bg-transparent px-3 py-1.5 dark:px-0 dark:py-0 rounded-md inline-block">
+              taskflow<span className="text-brand">.</span>
             </h1>
-            <p className="text-ink-faint text-xs font-mono mt-0.5">
+            <p className="text-ink-faint text-xs font-mono mt-2">
               {counts.pendiente} pendiente{counts.pendiente !== 1 ? "s" : ""}
             </p>
           </div>

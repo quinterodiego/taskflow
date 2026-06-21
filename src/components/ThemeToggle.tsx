@@ -1,12 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 export default function ThemeToggle() {
-  const [dark, setDark] = useState(() => {
-    if (typeof window === "undefined") return true
-    return document.documentElement.classList.contains("dark")
-  })
+  const [dark, setDark] = useState(true)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setDark(document.documentElement.classList.contains("dark"))
+    setMounted(true)
+  }, [])
 
   const toggle = () => {
     const next = !dark
@@ -19,6 +22,8 @@ export default function ThemeToggle() {
     localStorage.setItem("theme", next ? "dark" : "light")
   }
 
+  if (!mounted) return <div className="w-8 h-8" />
+
   return (
     <button
       onClick={toggle}
@@ -26,7 +31,6 @@ export default function ThemeToggle() {
       className="text-ink-muted hover:text-ink transition-colors p-1"
     >
       {dark ? (
-        // Sol — estás en dark, click va a light
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
           <circle cx="8" cy="8" r="3" />
           <line x1="8" y1="1" x2="8" y2="2.5" />
@@ -39,7 +43,6 @@ export default function ThemeToggle() {
           <line x1="12.01" y1="3.99" x2="13.07" y2="2.93" />
         </svg>
       ) : (
-        // Luna — estás en light, click va a dark
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M13.5 10.5A6 6 0 0 1 5.5 2.5a6 6 0 1 0 8 8z" />
         </svg>
