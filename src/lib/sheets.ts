@@ -63,7 +63,7 @@ export async function addTask(title: string, dueDate?: string): Promise<Task> {
   await sheets.spreadsheets.values.append({
     spreadsheetId,
     range: RANGE,
-    valueInputOption: "USER_ENTERED",
+    valueInputOption: "RAW",
     requestBody: {
       values: [[id, title, status, priority, createdAt, dueDate ?? ""]],
     },
@@ -148,7 +148,7 @@ export async function updateTaskDueDate(id: string, dueDate: string): Promise<vo
   await sheets.spreadsheets.values.update({
     spreadsheetId,
     range: `${SHEET_NAME}!F${rowIndex + 1}`,
-    valueInputOption: "USER_ENTERED",
+    valueInputOption: "RAW",
     requestBody: { values: [[dueDate]] },
   })
 }

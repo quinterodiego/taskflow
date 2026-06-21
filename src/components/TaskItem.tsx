@@ -7,9 +7,32 @@ import { Task, TaskStatus } from "@/types"
 import StatusBadge from "./StatusBadge"
 
 
-function formatDueDate(iso: string): { text: string; classes: string } {
+function toInputDate(iso: string): string {
+  if (!iso) return ""
+  if (iso.includes("/")) {
+    const parts = iso.split("/")
+    if (parts[0].length <= 2) {
+      // DD/MM/YYYY → YYYY-MM-DD
+      return `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`
+    }
+  }
+  return iso
+}
+
+function parseLocalDate(iso: string): Date {
+  if (iso.includes("/")) {
+    const parts = iso.split("/")
+    // DD/MM/YYYY (Sheets locale format)
+    if (parts[0].length <= 2) return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]))
+    // YYYY/MM/DD
+    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
+  }
   const [y, m, d] = iso.split("-").map(Number)
-  const due = new Date(y, m - 1, d) // local time, avoids UTC offset shifting the date
+  return new Date(y, m - 1, d)
+}
+
+function formatDueDate(iso: string): { text: string; classes: string } {
+  const due = parseLocalDate(iso)
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   due.setHours(0, 0, 0, 0)
@@ -196,7 +219,8 @@ export default function TaskItem({
           <input
             ref={dueDateInputRef}
             type="date"
-            defaultValue={task.dueDate ?? ""}
+            defaultValue={toInputDate(task.dueDate ?? "")}
+            onChange={(e) => e.target.value && handleDueSave(e.target.value)}
             onBlur={(e) => handleDueSave(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") handleDueSave((e.target as HTMLInputElement).value)
