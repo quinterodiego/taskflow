@@ -49,7 +49,7 @@ function formatDueDate(iso: string): { text: string; classes: string } {
     return { text: `venció el ${due.toLocaleDateString("es-AR", { day: "numeric", month: "short" })}`, classes: overdue }
   }
   if (diff === 0) return { text: "vence hoy", classes: today_ }
-  if (diff <= 6) return { text: DAYS[due.getDay()], classes: future }
+  if (diff <= 6) return { text: `${DAYS[due.getDay()]} ${due.getDate()}`, classes: future }
   return { text: due.toLocaleDateString("es-AR", { day: "numeric", month: "short" }), classes: future }
 }
 
