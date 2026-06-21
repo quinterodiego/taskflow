@@ -17,7 +17,7 @@ function formatDueDate(iso: string): { text: string; classes: string } {
   const DAYS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"]
 
   const overdue = "text-status-suspended border-status-suspended/30 hover:border-status-suspended"
-  const today_ = "text-accent border-accent/30 hover:border-accent"
+  const today_ = "text-ink-muted border-ink-muted/30 hover:border-ink-muted"
   const future = "text-status-done border-status-done/30 hover:border-status-done"
 
   if (diff < 0) {
