@@ -188,7 +188,20 @@ export default function Home() {
               {counts.pendiente} pendiente{counts.pendiente !== 1 ? "s" : ""}
             </p>
           </div>
-          <ThemeToggle />
+          <div className="flex flex-col items-end gap-2">
+            <span
+              suppressHydrationWarning
+              className="text-xs font-mono text-ink-faint"
+            >
+              {(() => {
+                const d = new Date()
+                const DAYS = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"]
+                const MONTHS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
+                return `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`
+              })()}
+            </span>
+            <ThemeToggle />
+          </div>
         </div>
 
         {/* Toast de éxito */}
